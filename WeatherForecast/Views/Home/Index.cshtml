@@ -2,7 +2,44 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row">
+    <div class="col-md-12">
+        <div class="form-group">
+            <div class="input-group mb-3">
+                <input id="txtSearch" type="text" class="form-control" placeholder="Location..." aria-label="ara" aria-describedby="btnSearch" style="border-radius:30px 0px 0px  30px;">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-primary" type="button" id="btnSearch" style="border-radius:0px 30px 30px 0px;"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        $('#txtSearch').on('keypress', function (e) {
+            if (e.which == 13) {
+                $('#btnSearch').click();
+            }
+        });
+
+        $('#btnSearch').click(function () {
+            var _location = JSON.stringify($("#txtSearch").val());
+
+            $.ajax({
+                type: 'GET',
+                url: "https://localhost:44360/Home/Location/",
+                contentType: 'application/json; charset=utf-8',
+                data: { location: _location },
+                dataType: 'json',              
+                success: function (result) {
+                    console.log(result);
+                },
+                failure: function (er) {
+                    console.log("Error");
+                    console.log(er);
+                }
+            });
+        });
+    });
+</script>
