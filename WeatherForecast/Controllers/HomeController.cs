@@ -29,7 +29,7 @@ namespace WeatherForecast.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Location(string location)
+        public IActionResult Location(string location)
         {
             List<WeatherLocation> weatherLocationList = new List<WeatherLocation>();
             string strURL = "https://www.metaweather.com/api/location/search/?query=" + location;
@@ -57,15 +57,34 @@ namespace WeatherForecast.Controllers
             }
         }
 
-        public IActionResult Privacy()
+        [HttpGet]
+        public IActionResult LocationDetail(int woeid)
         {
-            return View();
-        }
+            List<WeatherLocationDetail> locationDetailList = new List<WeatherLocationDetail>();
+            var today = DateTime.Now;
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            string strURL = "https://www.metaweather.com/api/location/" + woeid + '/' + today.Year + '/' + today.Month + '/' + today.Day;
+
+            try
+            {
+                var httpWebRequest = (HttpWebRequest)WebRequest.Create(strURL);
+
+                httpWebRequest.ContentType = "text/json";
+                httpWebRequest.Method = "GET";
+
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    locationDetailList = JsonConvert.DeserializeObject<List<WeatherLocationDetail>>(streamReader.ReadToEnd());
+                }
+
+                return Json(locationDetailList[0]);
+            }
+            catch (Exception e)
+            {
+                return BadRequest();
+            }
         }
     }
 }

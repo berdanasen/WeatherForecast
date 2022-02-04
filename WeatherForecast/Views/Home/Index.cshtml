@@ -2,6 +2,8 @@
     ViewData["Title"] = "Home Page";
 }
 
+
+
 <div class="row">
     <div class="col-md-12">
         <div class="form-group">
@@ -9,6 +11,61 @@
                 <input id="txtSearch" type="text" class="form-control" placeholder="Location..." aria-label="ara" aria-describedby="btnSearch" style="border-radius:30px 0px 0px  30px;">
                 <div class="input-group-append">
                     <button class="btn btn-outline-primary" type="button" id="btnSearch" style="border-radius:0px 30px 30px 0px;"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </div> 
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <button id="btnDetail" class="btn btn-outline-primary mb-3">Detail</button>
+        <table id="grdName" class="table table-bordered table-hover dvTable" data-toggle="table" data-toolbar="#dvToolbar1"
+               data-page-size="10" data-pagination="true" data-sortable="true"
+               data-single-select="true" data-click-to-select="true" data-sort-class="table-active" data-id-table="advancedTable">
+            <thead>
+                <tr>
+                    <th data-field="durum" data-checkbox="true"></th>
+                    <th data-field="woeid" data-sortable="true">Woeid</th>
+                    <th data-field="title" data-sortable="true">City</th>
+                    <th data-field="location_type" data-sortable="true">Type</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="modalWeather" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-sm" role="document">
+        <div class="modal-content d-flex justify-content-center align-items-center">
+            <div class="modal-header ">
+                <h5 class="modal-title city" id="exampleModalLabel"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="weather_state_abbr"></div>
+                        <div class="max_temp"></div>
+                        <div class="min_temp"></div>
+                        <div>
+                            <p class="mb-0">
+                                <i id="wind_direction_compass"></i> <a class="wind_speed" style="text-decoration: none; color: #212529;"></a>
+                            </p>
+                        </div>
+                        <div style="font-weight:bold">Humidity</div>
+                        <div class="humidity"></div>
+                        <div style="font-weight:bold">Visibility</div>
+                        <div class="visibility"></div>
+                        <div style="font-weight:bold">Pressure</div>
+                        <div class="air_pressure"></div>
+                        <div style="font-weight:bold">Confidence</div>
+                        <div class="predictability"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -23,6 +80,39 @@
             }
         });
 
+        $("#btnDetail").click(function () {
+            var _woeid = $("#grdName").bootstrapTable("getSelections")[0].woeid;
+            var _city = $("#grdName").bootstrapTable("getSelections")[0].title;
+
+            $.ajax({
+                type: 'GET',
+                url: "https://localhost:44360/Home/LocationDetail/?woeid=" + _woeid,
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (result) {
+                    console.log(result);
+                    if (result != null) {
+                        $("#modalWeather").modal('show');
+
+                        $(".city").text(_city);
+                        $("#weather_state_abbr").html('<img width="100" height="100" src="https://www.metaweather.com/static/img/weather/png/' + result.Weather_State_Abbr + '.png"  >');
+                        $(".max_temp").text("Max Temp: " + result.Max_Temp + "°C");
+                        $(".min_temp").text("Min Temp: " + result.Min_Temp + "°C");
+                        $(".humidity").text(result.Humidity + '%');
+                        $(".visibility").text(parseFloat(result.Visibility).toFixed(1) + " miles");
+                        $(".air_pressure").text(result.Air_Pressure + "mb");
+                        $(".predictability").text(result.Predictability + "%");
+                        $(".wind_speed").text(parseInt(result.Wind_Speed) + "mph");
+                        $("#wind_direction_compass").addClass("dir dir-" + result.Wind_Direction_Compass);
+                    }
+                },
+                failure: function (er) {
+                    console.log("Error");
+                    console.log(er);
+                }
+            });
+        });
+
         $('#btnSearch').click(function () {
             var _location = JSON.stringify($("#txtSearch").val());
 
@@ -34,6 +124,10 @@
                 dataType: 'json',              
                 success: function (result) {
                     console.log(result);
+                    if (result != null && result.length > 0) {
+                        $("#grdName").bootstrapTable("load", result);
+                        $("#grdName").bootstrapTable({ data: result });
+                    }
                 },
                 failure: function (er) {
                     console.log("Error");
