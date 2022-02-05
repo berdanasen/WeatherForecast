@@ -81,59 +81,67 @@
         });
 
         $("#btnDetail").click(function () {
-            var _woeid = $("#grdName").bootstrapTable("getSelections")[0].woeid;
-            var _city = $("#grdName").bootstrapTable("getSelections")[0].title;
+            if ($("#grdName").bootstrapTable("getSelections")[0] != null && $("#grdName").bootstrapTable("getSelections")[0] != undefined) {
+                var _woeid = $("#grdName").bootstrapTable("getSelections")[0].woeid;
+                var _city = $("#grdName").bootstrapTable("getSelections")[0].title;
+                $.ajax({
+                    type: 'GET',
+                    url: "https://localhost:44360/Home/LocationDetail/?woeid=" + _woeid,
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (result) {
+                        console.log(result);
+                        if (result != null) {
+                            $("#modalWeather").modal('show');
 
-            $.ajax({
-                type: 'GET',
-                url: "https://localhost:44360/Home/LocationDetail/?woeid=" + _woeid,
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                success: function (result) {
-                    console.log(result);
-                    if (result != null) {
-                        $("#modalWeather").modal('show');
-
-                        $(".city").text(_city);
-                        $("#weather_state_abbr").html('<img width="100" height="100" src="https://www.metaweather.com/static/img/weather/png/' + result.Weather_State_Abbr + '.png"  >');
-                        $(".max_temp").text("Max Temp: " + result.Max_Temp + "°C");
-                        $(".min_temp").text("Min Temp: " + result.Min_Temp + "°C");
-                        $(".humidity").text(result.Humidity + '%');
-                        $(".visibility").text(parseFloat(result.Visibility).toFixed(1) + " miles");
-                        $(".air_pressure").text(result.Air_Pressure + "mb");
-                        $(".predictability").text(result.Predictability + "%");
-                        $(".wind_speed").text(parseInt(result.Wind_Speed) + "mph");
-                        $("#wind_direction_compass").addClass("dir dir-" + result.Wind_Direction_Compass);
+                            $(".city").text(_city);
+                            $("#weather_state_abbr").html('<img width="100" height="100" src="https://www.metaweather.com/static/img/weather/png/' + result.Weather_State_Abbr + '.png"  >');
+                            $(".max_temp").text("Max Temp: " + result.Max_Temp + "°C");
+                            $(".min_temp").text("Min Temp: " + result.Min_Temp + "°C");
+                            $(".humidity").text(result.Humidity + '%');
+                            $(".visibility").text(parseFloat(result.Visibility).toFixed(1) + " miles");
+                            $(".air_pressure").text(result.Air_Pressure + "mb");
+                            $(".predictability").text(result.Predictability + "%");
+                            $(".wind_speed").text(parseInt(result.Wind_Speed) + "mph");
+                            $("#wind_direction_compass").addClass("dir dir-" + result.Wind_Direction_Compass);
+                        }
+                    },
+                    failure: function (er) {
+                        toastr.error(er);
                     }
-                },
-                failure: function (er) {
-                    console.log("Error");
-                    console.log(er);
-                }
-            });
+                });
+            }
+            else {
+                toastr.warning('Please select city on table and press Detail button!');
+            }
+            
         });
 
         $('#btnSearch').click(function () {
             var _location = JSON.stringify($("#txtSearch").val());
-
-            $.ajax({
-                type: 'GET',
-                url: "https://localhost:44360/Home/Location/",
-                contentType: 'application/json; charset=utf-8',
-                data: { location: _location },
-                dataType: 'json',              
-                success: function (result) {
-                    console.log(result);
-                    if (result != null && result.length > 0) {
-                        $("#grdName").bootstrapTable("load", result);
-                        $("#grdName").bootstrapTable({ data: result });
+            if ($("#txtSearch").val() != null && $("#txtSearch").val() != undefined && $("#txtSearch").val() != "") {
+                $.ajax({
+                    type: 'GET',
+                    url: "https://localhost:44360/Home/Location/",
+                    contentType: 'application/json; charset=utf-8',
+                    data: { location: _location },
+                    dataType: 'json',
+                    success: function (result) {
+                        console.log(result);
+                        if (result != null && result.length > 0) {
+                            $("#grdName").bootstrapTable("load", result);
+                            $("#grdName").bootstrapTable({ data: result });
+                            toastr.success("Search Successfull!");
+                        }
+                    },
+                    failure: function (er) {
+                        toastr.error(er);
                     }
-                },
-                failure: function (er) {
-                    console.log("Error");
-                    console.log(er);
-                }
-            });
+                });
+            }
+            else {
+                toastr.warning('Please do not search empty!');
+            }
         });
     });
 </script>
